@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ImranGadgets.shop</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body{margin:0;font-family:'Segoe UI',sans-serif;background:#f4f6f9;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+    .card{background:white;padding:30px;width:400px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);text-align:center;}
+    h1,h2,h3{text-align:center;}
+    input{width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;}
+    .password-box{position:relative;}
+    .password-box i{position:absolute;right:15px;top:12px;cursor:pointer;color:#555;}
+    button{width:95%;padding:10px;margin-top:8px;border:none;border-radius:6px;background:#007bff;color:white;cursor:pointer;}
+    button:hover{background:#0056b3;}
+    .link{margin-top:10px;color:#007bff;cursor:pointer;font-size:14px;}
+    #registerCard,#userDashboard,#adminDashboard{display:none;}
+    .product{border:1px solid #ddd;padding:10px;margin:8px 0;border-radius:6px;text-align:left;}
+    .product img{width:80px;height:80px;object-fit:cover;margin-right:10px;}
+    .product-detail{display:flex;justify-content:space-between;align-items:center;}
+    .cart{background:#f9f9f9;padding:10px;border-radius:6px;margin-top:15px;text-align:left;}
+    .removeBtn{background:red;margin-top:5px;padding:5px 10px;border:none;border-radius:4px;color:white;cursor:pointer;}
+    .admin-section{margin:15px 0;text-align:left;}
+    .admin-section input{width:70%;display:inline-block;}
+    .admin-section button{width:25%;display:inline-block;margin-left:5px;}
+  </style>
+</head>
+<body>
+
+<!-- USER LOGIN -->
+<div class="card" id="loginCard">
+  <h2>User Login</h2>
+  <input type="text" id="loginUser" placeholder="Username">
+  <div class="password-box">
+    <input type="password" id="loginPass" placeholder="Password">
+    <i class="fa-solid fa-eye" onclick="togglePassword('loginPass')"></i>
+  </div>
+  <button onclick="userLogin()">Login</button>
+  <div class="link" onclick="showRegister()">Register</div>
+  <div class="link" onclick="showAdminLogin()">Admin Login</div>
+</div>
+
+<!-- USER REGISTER -->
+<div class="card" id="registerCard">
+  <h2>Register</h2>
+  <input type="text" id="regUser" placeholder="Username">
+  <input type="password" id="regPass" placeholder="Password">
+  <button onclick="registerUser()">Register</button>
+  <div class="link" onclick="showLogin()">Back to Login</div>
+</div>
+
+<!-- USER DASHBOARD -->
+<div class="card" id="userDashboard">
+  <h1>Welcome User 🎉</h1>
+  <div id="userProducts"></div>
+  <div class="cart">
+    <h3>Your Cart</h3>
+    <ul id="userCartList"></ul>
+  </div>
+  <button onclick="userLogout()">Logout</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div class="card" id="adminLoginCard">
+  <h2>Admin Login</h2>
+  <input type="text" id="adminUserInput" placeholder="Admin Username">
+  <div class="password-box">
+    <input type="password" id="adminPassInput" placeholder="Password">
+    <i class="fa-solid fa-eye" onclick="togglePassword('adminPassInput')"></i>
+  </div>
+  <button onclick="adminLogin()">Login</button>
+  <div class="link" onclick="showLogin()">Back to User Login</div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="card" id="adminDashboard">
+  <h1>Admin Dashboard</h1>
+  <div class="admin-section">
+    <h3>Add Item</h3>
+    <input type="text" id="itemName" placeholder="Item Name">
+    <input type="text" id="itemPrice" placeholder="Price">
+    <input type="text" id="itemImg" placeholder="Image URL">
+    <button onclick="addItem()">Add</button>
+  </div>
+
+  <h3>Available Items</h3>
+  <div id="productList"></div>
+
+  <h3>Cart</h3>
+  <div class="cart">
+    <ul id="cartList"></ul>
+  </div>
+
+  <button onclick="adminLogout()">Logout</button>
+</div>
+
+<script>
+let users=[]; // registered users
+let currentUser=null;
+let adminUser="admin";
+let adminPass="12345";
+let items=[];
+let cart=[];
+
+// Show different pages
+function showRegister(){document.getElementById("loginCard").style.display="none";document.getElementById("registerCard").style.display="block";}
+function showLogin(){document.getElementById("registerCard").style.display="none";document.getElementById("loginCard").style.display="block";document.getElementById("adminLoginCard").style.display="none";}
+function showAdminLogin(){document.getElementById("loginCard").style.display="none";document.getElementById("adminLoginCard").style.display="block";}
+
+// Toggle password
+function togglePassword(id){const pass=document.getElementById(id);pass.type=(pass.type==="password")?"text":"password";}
+
+// Register user
+function registerUser(){
+  const u=document.getElementById("regUser").value;
+  const p=document.getElementById("regPass").value;
+  if(u===""||p===""){alert("Fill all fields!"); return;}
+  users.push({username:u,password:p});
+  alert("User Registered!"); showLogin();
+}
+
+// User login
+function userLogin(){
+  const u=document.getElementById("loginUser").value;
+  const p=document.getElementById("loginPass").value;
+  const user=users.find(x=>x.username===u && x.password===p);
+  if(user){currentUser=user;document.getElementById("loginCard").style.display="none";document.getElementById("userDashboard").style.display="block";displayUserItems();displayUserCart();}
+  else alert("Wrong username or password!");
+}
+
+// Admin login
+function adminLogin(){
+  const u=document.getElementById("adminUserInput").value;
+  const p=document.getElementById("adminPassInput").value;
+  if(u===adminUser && p===adminPass){document.getElementById("adminLoginCard").style.display="none";document.getElementById("adminDashboard").style.display="block";displayItems();displayCart();}
+  else alert("Wrong admin credentials!");
+}
+
+// User logout
+function userLogout(){document.getElementById("userDashboard").style.display="none";currentUser=null;cart=[];displayUserCart();showLogin();}
+
+// Admin logout
+function adminLogout(){document.getElementById("adminDashboard").style.display="none";cart=[];displayCart();showLogin();}
+
+// Add item (admin)
+function addItem(){
+  const name=document.getElementById("itemName").value;
+  const price=document.getElementById("itemPrice").value;
+  const img=document.getElementById("itemImg").value;
+  if(name===""||price===""||img===""){alert("Fill all fields!");return;}
+  items.push({name,price,img}); displayItems();
+  document.getElementById("itemName").value=""; document.getElementById("itemPrice").value=""; document.getElementById("itemImg").value="";
+}
+
+// Display items (admin)
+function displayItems(){
+  const list=document.getElementById("productList"); list.innerHTML="";
+  items.forEach((item,index)=>{
+    const div=document.createElement("div"); div.className="product";
+    div.innerHTML=`<div class="product-detail"><div style="display:flex;align-items:center;"><img src="${item.img}" alt="${item.name}"><div><p>${item.name}</p><p>$${item.price}</p></div></div><div><button onclick="addToCart(${index})">Add to Cart</button><button class="removeBtn" onclick="removeItem(${index})">Remove</button></div></div>`;
+    list.appendChild(div);
+  });
+}
+
+// Remove item (admin)
+function removeItem(index){items.splice(index,1);displayItems();}
+
+// Add to cart (admin)
+function addToCart(index){cart.push(items[index]);displayCart();displayUserCart();}
+
+// Display cart (admin)
+function displayCart(){const list=document.getElementById("cartList"); list.innerHTML="";cart.forEach((item,i)=>{list.innerHTML+=`<li>${item.name} - $${item.price} <button class="removeBtn" onclick="removeFromCart(${i})">Cancel</button></li>`;});}
+
+// Remove from cart (admin)
+function removeFromCart(i){cart.splice(i,1);displayCart();displayUserCart();}
+
+// Display items for user dashboard
+function displayUserItems(){
+  const div=document.getElementById("userProducts"); div.innerHTML="";
+  items.forEach((item,index)=>{
+    const d=document.createElement("div"); d.className="product";
+    d.innerHTML=`<div class="product-detail"><div style="display:flex;align-items:center;"><img src="${item.img}" alt="${item.name}"><div><p>${item.name}</p><p>$${item.price}</p></div></div><button onclick="userAddToCart(${index})">Add to Cart</button></div>`;
+    div.appendChild(d);
+  });
+}
+
+// User add to cart
+function userAddToCart(index){cart.push(items[index]);displayUserCart();displayCart();}
+
+// User cart
+function displayUserCart(){const list=document.getElementById("userCartList"); list.innerHTML="";cart.forEach((item,i)=>{list.innerHTML+=`<li>${item.name} - $${item.price} <button class="removeBtn" onclick="userRemoveFromCart(${i})">Cancel</button></li>`;});}
+
+// User remove from cart
+function userRemoveFromCart(i){cart.splice(i,1);displayUserCart();displayCart();}
+</script>
+
+</body>
+</html>
